@@ -32,7 +32,8 @@ module.exports = function( grunt ) {
 	var template = grunt.template;
 	var distpaths = [
 		"dist/jquery.js",
-		"dist/jquery.min.js"
+		"dist/jquery.min.js",
+		"dist/jquery.dbg.js"
 	];
 
 	grunt.initConfig({
@@ -77,11 +78,15 @@ module.exports = function( grunt ) {
 				{ flag: "dimensions", src: "src/dimensions.js", needs: ["css"] },
 
 				"src/exports.js",
+				"src/debug.js",
 				"src/outro.js"
 			]
 		},
 		min: {
 			"dist/jquery.min.js": [ "<banner>", "dist/jquery.js" ]
+		},
+		debug: {
+			"dist/jquery.dbg.js": [ "dist/jquery.js" ]
 		},
 
 		lint: {
@@ -116,7 +121,7 @@ module.exports = function( grunt ) {
 	});
 
 	// Default grunt.
-	grunt.registerTask( "default", "submodules selector build:*:* lint min dist:* compare_size" );
+	grunt.registerTask( "default", "submodules selector build:*:* lint min debug dist:* compare_size" );
 
 	// Short list as a high frequency watch task
 	grunt.registerTask( "dev", "selector build:*:* lint" );
@@ -124,6 +129,22 @@ module.exports = function( grunt ) {
 	// Load grunt tasks from NPM packages
 	grunt.loadNpmTasks( "grunt-compare-size" );
 	grunt.loadNpmTasks( "grunt-git-authors" );
+	
+	grunt.registerMultiTask( "debug", "Buid dist/jquery.dbg.js", function(){
+		var name = this.file.dest,
+				src = file.read( this.file.src ),
+				parts;
+		while(true){
+			parts=src.split("/*debug",2);
+			if(!parts[1]){
+				break;
+			}
+			src=parts[0];
+			parts=parts[1].split("*/",2);
+			src=src+parts[0]+parts[1];
+		}
+		file.write(name,src);
+	});
 
 	grunt.registerTask( "testswarm", function( commit, configFile ) {
 		var testswarm = require( "testswarm" ),
